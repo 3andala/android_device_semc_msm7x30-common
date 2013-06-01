@@ -19,6 +19,9 @@
 #define LOG_TAG "lights.semc"
 
 #include <cutils/log.h>
+#include <cutils/properties.h>
+
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
@@ -158,7 +161,7 @@ static int set_light_backlight (struct light_device_t *dev, struct light_state_t
 	int enable = 0;
 	int brightness = rgb_to_brightness(state);
 
-	if(brightness > 0)
+	if (brightness > 0)
 		brightness = brightness_apply_gamma(brightness);
 
 	if ((state->brightnessMode == BRIGHTNESS_MODE_SENSOR) && (brightness > 0))
@@ -176,12 +179,15 @@ static int set_light_backlight (struct light_device_t *dev, struct light_state_t
 static int set_light_buttons (struct light_device_t *dev, struct light_state_t const* state) {
 	size_t i = 0;
 	int on = is_lit(state);
+	int brightness = rgb_to_brightness(state);
+
+	if (brightness > 0)
+		brightness = brightness_apply_gamma(brightness);
+
 	pthread_mutex_lock(&g_lock);
-
 	for (i = 0; i < sizeof(BUTTON_BACKLIGHT_FILE)/sizeof(BUTTON_BACKLIGHT_FILE[0]); i++) {
-		write_int (BUTTON_BACKLIGHT_FILE[i], on ? 255 : 0);
+		write_int (BUTTON_BACKLIGHT_FILE[i], on ? brightness : 0);
 	}
-
 	pthread_mutex_unlock(&g_lock);
 
 	return 0;
@@ -190,19 +196,23 @@ static int set_light_buttons (struct light_device_t *dev, struct light_state_t c
 static int set_light_keyboard (struct light_device_t* dev, struct light_state_t const* state) {
 	size_t i = 0;
 	int on = is_lit(state);
+	int brightness = rgb_to_brightness(state);
+
+	if (brightness > 0)
+		brightness = brightness_apply_gamma(brightness);
+
 	pthread_mutex_lock(&g_lock);
-
 	for (i = 0; i < sizeof(KEYBOARD_BACKLIGHT_FILE)/sizeof(KEYBOARD_BACKLIGHT_FILE[0]); i++) {
-		write_int (KEYBOARD_BACKLIGHT_FILE[i], on ? 255 : 0);
+		write_int (KEYBOARD_BACKLIGHT_FILE[i], on ? brightness : 0);
 	}
-
 	pthread_mutex_unlock(&g_lock);
 
 	return 0;
 }
 
 static void set_shared_light_locked (struct light_device_t *dev, struct light_state_t *state) {
-	int r, g, b, i;
+	int r, g, b;
+	size_t i = 0;
 
 	uint32_t pattern = 0;
 	uint32_t patbits = 0;
