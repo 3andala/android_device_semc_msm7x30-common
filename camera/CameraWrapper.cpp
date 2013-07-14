@@ -35,6 +35,14 @@
 #include <camera/Camera.h>
 #include <camera/CameraParameters.h>
 
+/* SEMC parameter names */
+static char KEY_SEMC_IMAGE_STABILISER[] = "semc-is";
+static char KEY_SEMC_VIDEO_STABILISER[] = "semc-vs";
+
+/* SEMC parameter values */
+static char VALUE_SEMC_ON[] = "on";
+static char VALUE_SEMC_OFF[] = "off";
+
 static android::Mutex gCameraWrapperLock;
 static camera_module_t *gVendorModule = 0;
 
@@ -91,16 +99,10 @@ static int check_vendor_module()
     return rv;
 }
 
-const static char * scene_mode_values[] =
-{"auto,portrait,landscape,night,night-portrait,beach,snow,sports,party,barcode", "auto"};
-
 static char * camera_fixup_getparams(int id, const char * settings)
 {
     android::CameraParameters params;
     params.unflatten(android::String8(settings));
-
-    // fix params here
-    params.set(android::CameraParameters::KEY_SUPPORTED_SCENE_MODES, scene_mode_values[id]);
 
     android::String8 strParams = params.flatten();
     char *ret = strdup(strParams.string());
@@ -114,18 +116,29 @@ char * camera_fixup_setparams(int id, const char * settings)
     android::CameraParameters params;
     params.unflatten(android::String8(settings));
 
-    // fix params here
+#if 0
+    if (params.get(android::CameraParameters::KEY_RECORDING_HINT)) {
+        const char* recordingHint = params.get(android::CameraParameters::KEY_RECORDING_HINT);
+        if (strcmp(recordingHint, android::CameraParameters::TRUE) == 0) {
+            /* Video stabiliser */
+            params.set(KEY_SEMC_VIDEO_STABILISER, VALUE_SEMC_ON);
+            params.set(KEY_SEMC_IMAGE_STABILISER, VALUE_SEMC_OFF);
+        } else if (strcmp(recordingHint, android::CameraParameters::FALSE) == 0) {
+            /* Image stabiliser */
+            params.set(KEY_SEMC_VIDEO_STABILISER, VALUE_SEMC_OFF);
+            params.set(KEY_SEMC_IMAGE_STABILISER, VALUE_SEMC_ON);
+        }
+    }
+#endif
+
 #ifdef USES_AS3676_TORCH
-    if (params.get("flash-mode"))
-    {
+    /* Fix urushi as3676 torch */
+    if (params.get(android::CameraParameters::KEY_FLASH_MODE)) {
         const char* flashMode = params.get(android::CameraParameters::KEY_FLASH_MODE);
-        if (strcmp(flashMode, "torch") == 0)
-        {
+        if (strcmp(flashMode, android::CameraParameters::FLASH_MODE_TORCH) == 0) {
             system("echo 255 > /sys/class/leds/torch-rgb1/brightness");
             system("echo 255 > /sys/class/leds/torch-rgb2/brightness");
-        } else
-        if (strcmp(flashMode, "off") == 0)
-        {
+        } else if (strcmp(flashMode, android::CameraParameters::FLASH_MODE_OFF) == 0) {
             system("echo 0 > /sys/class/leds/torch-rgb1/brightness");
             system("echo 0 > /sys/class/leds/torch-rgb2/brightness");
         }
