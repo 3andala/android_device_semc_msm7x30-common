@@ -30,11 +30,17 @@ TARGET_BOARD_PLATFORM_GPU := qcom-adreno200
 TARGET_ARCH := arm
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
+<<<<<<< HEAD
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_VARIANT := cortex-a8
 TARGET_ARCH_VARIANT_CPU := cortex-a8
 TARGET_CPU_VARIANT := generic
 TARGET_USE_SCORPION_BIONIC_OPTIMIZATION := true
+=======
+TARGET_CPU_VARIANT := scorpion
+TARGET_ARCH_VARIANT := armv7-a-neon
+TARGET_ARCH_LOWMEM := true
+>>>>>>> lx/cm-10.2
 
 # QCOM Hardware
 BOARD_USES_QCOM_HARDWARE := true
@@ -43,6 +49,7 @@ COMMON_GLOBAL_CFLAGS += -DQCOM_HARDWARE
 # Display
 TARGET_QCOM_DISPLAY_VARIANT := legacy
 BOARD_EGL_NEEDS_LEGACY_FB := true
+COMMON_GLOBAL_CFLAGS += -DEGL_NEEDS_FNW
 USE_OPENGL_RENDERER := true
 TARGET_USES_ION := false
 TARGET_USES_C2D_COMPOSITION := true
@@ -79,10 +86,8 @@ TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
 BOARD_CUSTOM_BOOTIMG_MK := device/semc/msm7x30-common/custombootimg.mk
 TARGET_RECOVERY_PRE_COMMAND := "touch /cache/recovery/boot;sync;"
 TARGET_RECOVERY_FSTAB := device/semc/msm7x30-common/rootdir/fstab.semc
-RECOVERY_FSTAB_VERSION := 2
 BOARD_CUSTOM_RECOVERY_KEYMAPPING := ../../device/semc/msm7x30-common/recovery/recovery_keys.c
 TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/devices/platform/msm_hsusb/gadget/lun0/file"
-BOARD_SDCARD_INTERNAL_DEVICE := /dev/block/mmcblk0p1
 
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/semc/msm7x30
@@ -103,7 +108,7 @@ SOMC_CFG_SENSORS := true
 SOMC_CFG_SENSORS_COMPASS_AK8975 := yes
 SOMC_CFG_SENSORS_LIGHT_AS3676 := yes
 SOMC_CFG_SENSORS_LIGHT_AS3676_PATH := "/sys/devices/i2c-0/0-0040/adc_als_value"
-SOMC_CFG_SENSORS_LIGHT_AS3676_MAXRANGE := 13000
+SOMC_CFG_SENSORS_LIGHT_AS3676_MAXRANGE := 9000
 
 # A custom ota package maker for a device without an exposed boot partition
 TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/semc/msm7x30-common/releasetools/semc_ota_from_target_files
