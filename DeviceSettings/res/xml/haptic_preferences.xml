@@ -14,23 +14,11 @@
      limitations under the License.
  -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <!-- Button/keyboard backlight brightness adjustment -->
-    <PreferenceCategory android:key="category_backlight"
-        android:title="@string/category_backlight_title">
-
-        <ListPreference android:key="button_brightness"
-            android:title="@string/button_brightness_title_head"
-            android:entries="@array/brightness_entries"
-            android:entryValues="@array/brightness_values"
-            android:defaultValue="255" />
-
-        <ListPreference android:key="keyboard_brightness"
-            android:title="@string/keyboard_brightness_title_head"
-            android:entries="@array/brightness_entries"
-            android:entryValues="@array/brightness_values"
-            android:defaultValue="255" />
-
+    <PreferenceCategory
+            android:title="@string/vibrator_title">
+        <com.cyanogenmod.settings.device.VibratorTuningPreference
+            android:key="vibrator_tuning"
+            android:title="@string/vibrator_tuning_title"
+            android:dialogTitle="@string/vibrator_tuning_title" />
     </PreferenceCategory>
-
 </PreferenceScreen>

@@ -13,15 +13,13 @@
      See the License for the specific language governing permissions and
      limitations under the License.
  -->
+
+<!-- These resources are around just to allow their values to be customized
+     for different hardware and product builds. -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name">高级设置</string>
-    <string name="general_title">常规</string>
-    <string name="category_backlight_title">背光</string>
-    <string name="button_brightness_title_head">按键背光亮度</string>
-    <string name="keyboard_brightness_title_head">键盘背光亮度</string>
-    <string name="defaults_button">重置为默认值</string>
-    <string name="category_haptic_title">振动</string>
-    <string name="vibrator_title">振动器</string>
-    <string name="vibrator_tuning_title">振动强度</string>
-    <string name="vibrator_warning">不建议使用超过 %1$d 的值</string>
+    <!-- Vibrator Tuning -->
+    <string name="intensity_max_value">3100</string>
+    <string name="intensity_warning_threshold">2700</string>
+    <string name="intensity_default_value">2700</string>
+    <string name="intensity_min_value">1200</string>
 </resources>
