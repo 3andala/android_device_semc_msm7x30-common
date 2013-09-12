@@ -42,7 +42,6 @@ COMMON_GLOBAL_CFLAGS += -DQCOM_HARDWARE
 # Display
 TARGET_QCOM_DISPLAY_VARIANT := legacy
 BOARD_EGL_NEEDS_LEGACY_FB := true
-COMMON_GLOBAL_CFLAGS += -DEGL_NEEDS_FNW
 USE_OPENGL_RENDERER := true
 TARGET_USES_ION := false
 TARGET_USES_C2D_COMPOSITION := true
@@ -73,6 +72,7 @@ TARGET_DISABLE_ARM_PIE := false
 BOARD_NEEDS_MEMORYHEAPPMEM := true
 COMMON_GLOBAL_CFLAGS += -DDISABLE_HW_ID_MATCH_CHECK
 TARGET_QCOM_MEDIA_VARIANT := legacy
+COMMON_GLOBAL_CFLAGS += -DSEMC_ICS_CAMERA_BLOB -DSEMC_CAMERA_HARDWARE
 
 # Recovery
 TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
@@ -80,13 +80,14 @@ BOARD_CUSTOM_BOOTIMG_MK := device/semc/msm7x30-common/custombootimg.mk
 TARGET_RECOVERY_PRE_COMMAND := "touch /cache/recovery/boot;sync;"
 TARGET_RECOVERY_FSTAB := device/semc/msm7x30-common/rootdir/fstab.semc
 BOARD_CUSTOM_RECOVERY_KEYMAPPING := ../../device/semc/msm7x30-common/recovery/recovery_keys.c
-TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/devices/platform/msm_hsusb/gadget/lun0/file"
+TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/devices/platform/msm_hsusb/gadget/lun%d/file"
 
 # Kernel
 TARGET_KERNEL_SOURCE := kernel/semc/msm7x30
 BOARD_KERNEL_CMDLINE := # This is ignored by sony's bootloader
 BOARD_KERNEL_BASE := 0x00200000
 TARGET_NO_BOOTLOADER := true
+TARGET_NO_RADIOIMAGE := true
 COMMON_GLOBAL_CFLAGS += -DHAS_SEMC_BOOTLOADER
 
 # Boot Animation

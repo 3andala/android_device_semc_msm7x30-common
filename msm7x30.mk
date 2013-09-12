@@ -133,8 +133,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # Low Power Audio
 PRODUCT_PROPERTY_OVERRIDES += \
     lpa.decode=false \
-    lpa.use-stagefright=false \
-    use.non-omx.mp3.decoder=true
+    lpa.use-stagefright=false
 
 # Resampler quality
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -166,7 +165,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # Set default number of background apps to 10
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.sys.fw.bg_apps_limit=10
+    sys.mem.max_hidden_apps=10
 
 # Extra debugging props
 PRODUCT_PROPERTY_OVERRIDES += \

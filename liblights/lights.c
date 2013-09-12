@@ -32,24 +32,14 @@
 #include <sys/types.h>
 
 #include <hardware/lights.h>
+#ifndef NO_BUTTON_BACKLIGHT
+#include "semc_lights.h"
+#endif
 
 char const*const LCD_BACKLIGHT_FILE = "/sys/class/leds/lcd-backlight/brightness";
 char const*const RED_LED_FILE       = "/sys/class/leds/red/brightness";
 char const*const GREEN_LED_FILE     = "/sys/class/leds/green/brightness";
 char const*const BLUE_LED_FILE      = "/sys/class/leds/blue/brightness";
-
-char const*const BUTTON_BACKLIGHT_FILE[] = {
-  "/sys/class/leds/button-backlight/brightness",
-  "/sys/class/leds/button-backlight-rgb1/brightness",
-  "/sys/class/leds/button-backlight-rgb2/brightness"
-};
-
-char const*const KEYBOARD_BACKLIGHT_FILE[] = {
-  "/sys/class/leds/keyboard-backlight-rgb1/brightness",
-  "/sys/class/leds/keyboard-backlight-rgb2/brightness",
-  "/sys/class/leds/keyboard-backlight-rgb3/brightness",
-  "/sys/class/leds/keyboard-backlight-rgb4/brightness"
-};
 
 char const*const LED_FILE_TRIGGER[]  = {
   "/sys/class/leds/red/use_pattern",
@@ -161,36 +151,42 @@ static int set_light_backlight (struct light_device_t *dev, struct light_state_t
 
 	ALOGV("%s brightness = %d", __func__, brightness);
 	pthread_mutex_lock(&g_lock);
-	err |= write_int (LCD_BACKLIGHT_FILE, brightness);
+	err = write_int (LCD_BACKLIGHT_FILE, brightness);
 	pthread_mutex_unlock(&g_lock);
 
 	return err;
 }
 
 static int set_light_buttons (struct light_device_t *dev, struct light_state_t const* state) {
+	int err = 0;
+#ifndef NO_BUTTON_BACKLIGHT
 	size_t i = 0;
-	int on = is_lit(state);
+	int brightness = rgb_to_brightness(state);
 
 	pthread_mutex_lock(&g_lock);
+	ALOGV("%s brightness = %d", __func__, brightness);
 	for (i = 0; i < sizeof(BUTTON_BACKLIGHT_FILE)/sizeof(BUTTON_BACKLIGHT_FILE[0]); i++) {
-		write_int (BUTTON_BACKLIGHT_FILE[i], on ? 255 : 0);
+		err |= write_int (BUTTON_BACKLIGHT_FILE[i], brightness);
 	}
 	pthread_mutex_unlock(&g_lock);
-
-	return 0;
+#endif
+	return err;
 }
 
 static int set_light_keyboard (struct light_device_t* dev, struct light_state_t const* state) {
+	int err = 0;
+#ifdef HAVE_KEYBOARD_BACKLIGHT
 	size_t i = 0;
-	int on = is_lit(state);
+	int brightness = rgb_to_brightness(state);
 
 	pthread_mutex_lock(&g_lock);
+	ALOGV("%s brightness = %d", __func__, brightness);
 	for (i = 0; i < sizeof(KEYBOARD_BACKLIGHT_FILE)/sizeof(KEYBOARD_BACKLIGHT_FILE[0]); i++) {
-		write_int (KEYBOARD_BACKLIGHT_FILE[i], on ? 255 : 0);
+		err |= write_int (KEYBOARD_BACKLIGHT_FILE[i], brightness);
 	}
 	pthread_mutex_unlock(&g_lock);
-
-	return 0;
+#endif
+	return err;
 }
 
 static void set_shared_light_locked (struct light_device_t *dev, struct light_state_t *state) {
