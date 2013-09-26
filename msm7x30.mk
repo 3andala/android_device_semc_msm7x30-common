@@ -46,8 +46,15 @@ PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/rootdir/system/etc/init.d/10dhcpcd:system/etc/init.d/10dhcpcd \
     $(COMMON_PATH)/rootdir/system/etc/vold.fstab:system/etc/vold.fstab \
     $(COMMON_PATH)/rootdir/fstab.semc:root/fstab.semc \
+    $(COMMON_PATH)/rootdir/init.semc.rc:root/init.semc.rc \
     $(COMMON_PATH)/rootdir/ueventd.semc.rc:root/ueventd.semc.rc \
     $(COMMON_PATH)/rootdir/sbin/postrecoveryboot.sh:root/sbin/postrecoveryboot.sh
+
+# Common keylayouts
+PRODUCT_COPY_FILES += \
+    $(COMMON_PATH)/rootdir/system/usr/keylayout/atdaemon.kl:system/usr/keylayout/atdaemon.kl \
+    $(COMMON_PATH)/rootdir/system/usr/keylayout/msm_pmic_pwr_key.kl:system/usr/keylayout/msm_pmic_pwr_key.kl \
+    $(COMMON_PATH)/rootdir/system/usr/keylayout/simple_remote.kl:system/usr/keylayout/simple_remote.kl
 
 # Audio
 PRODUCT_PACKAGES += \
