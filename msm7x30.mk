@@ -42,8 +42,7 @@ PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/rootdir/system/etc/media_profiles.xml:system/etc/media_profiles.xml \
     $(COMMON_PATH)/rootdir/system/etc/media_codecs.xml:system/etc/media_codecs.xml \
     $(COMMON_PATH)/rootdir/system/etc/audio_policy.conf:system/etc/audio_policy.conf \
-    $(COMMON_PATH)/rootdir/system/etc/init.d/10hostapconf:system/etc/init.d/10hostapconf \
-    $(COMMON_PATH)/rootdir/system/etc/init.d/10dhcpcd:system/etc/init.d/10dhcpcd \
+    $(COMMON_PATH)/rootdir/system/etc/init.d/10read_ahead_kb:system/etc/init.d/10read_ahead_kb \
     $(COMMON_PATH)/rootdir/system/etc/vold.fstab:system/etc/vold.fstab \
     $(COMMON_PATH)/rootdir/fstab.semc:root/fstab.semc \
     $(COMMON_PATH)/rootdir/init.semc.rc:root/init.semc.rc \
@@ -52,9 +51,9 @@ PRODUCT_COPY_FILES += \
 
 # Common keylayouts
 PRODUCT_COPY_FILES += \
-    $(COMMON_PATH)/rootdir/system/usr/keylayout/atdaemon.kl:system/usr/keylayout/atdaemon.kl \
     $(COMMON_PATH)/rootdir/system/usr/keylayout/msm_pmic_pwr_key.kl:system/usr/keylayout/msm_pmic_pwr_key.kl \
-    $(COMMON_PATH)/rootdir/system/usr/keylayout/simple_remote.kl:system/usr/keylayout/simple_remote.kl
+    $(COMMON_PATH)/rootdir/system/usr/keylayout/simple_remote.kl:system/usr/keylayout/simple_remote.kl \
+    $(COMMON_PATH)/rootdir/system/usr/keylayout/simple_remote_appkey.kl:system/usr/keylayout/simple_remote_appkey.kl
 
 # Audio
 PRODUCT_PACKAGES += \
