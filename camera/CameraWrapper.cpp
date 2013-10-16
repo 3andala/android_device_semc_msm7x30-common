@@ -22,8 +22,8 @@
 */
 
 
-#define LOG_NDEBUG 0
-#define LOG_PARAMETERS
+//#define LOG_NDEBUG 0
+//#define LOG_PARAMETERS
 
 #define LOG_TAG "CameraWrapper"
 #include <cutils/log.h>
@@ -36,12 +36,18 @@
 #include <camera/CameraParameters.h>
 
 /* SEMC parameter names */
-static char KEY_SEMC_IMAGE_STABILISER[] = "semc-is";
-static char KEY_SEMC_VIDEO_STABILISER[] = "semc-vs";
+static char KEY_EX_IMAGE_STABILIZER[] = "semc-is";
+static char KEY_EX_VIDEO_STABILIZER[] = "semc-vs";
+static char KEY_EX_VIDEO_MODE[] = "semc-video-mode";
+static char KEY_EX_METERING_MODE[] = "semc-metering-mode";
+static char KEY_EX_SUPPORTED_METERING_MODES[] = "semc-metering-mode-values";
+static char KEY_EX_MAX_MULTI_FOCUS_NUM[] = "semc-max-multi-focus-num";
+static char KEY_EX_SUPPORTED_SCENE_DETECTIONS[] = "semc-scene-detect-supported";
 
 /* SEMC parameter values */
-static char VALUE_SEMC_ON[] = "on";
-static char VALUE_SEMC_OFF[] = "off";
+static char EX_ON[] = "on";
+static char EX_OFF[] = "off";
+
 
 static android::Mutex gCameraWrapperLock;
 static camera_module_t *gVendorModule = 0;
@@ -99,18 +105,63 @@ static int check_vendor_module()
     return rv;
 }
 
-/* Preferred panorama viewing angles */
-const static char * preferred_horizontal_viewing_angle = "51.2";
-const static char * preferred_vertical_viewing_angle = "39.4";
+void camera_fixup_capability(android::CameraParameters *params)
+{
+    ALOGV("%s", __FUNCTION__);
+
+    /* Scene mode */
+    if (params->get(KEY_EX_IMAGE_STABILIZER)) {
+        char buffer[255];
+        const char* supportedSceneModes = params->get(android::CameraParameters::KEY_SUPPORTED_SCENE_MODES);
+        sprintf(buffer, "%s,hdr", supportedSceneModes);
+        params->set(android::CameraParameters::KEY_SUPPORTED_SCENE_MODES, buffer);
+    }
+
+    /* Metering mode */
+    if (params->get(KEY_EX_METERING_MODE)) {
+        char buffer[255];
+        const char* supportedMeteringModes = params->get(KEY_EX_SUPPORTED_METERING_MODES);
+        sprintf(buffer, "%s-metering", supportedMeteringModes);
+        params->set(android::CameraParameters::KEY_SUPPORTED_AUTO_EXPOSURE, buffer);
+    }
+}
 
 static char * camera_fixup_getparams(int id, const char * settings)
 {
     android::CameraParameters params;
     params.unflatten(android::String8(settings));
 
+    camera_fixup_capability(&params);
+
     /* Fix panorama - set correct viewing angles */
-    params.set(android::CameraParameters::KEY_HORIZONTAL_VIEW_ANGLE, preferred_horizontal_viewing_angle);
-    params.set(android::CameraParameters::KEY_VERTICAL_VIEW_ANGLE, preferred_vertical_viewing_angle);
+    params.set(android::CameraParameters::KEY_HORIZONTAL_VIEW_ANGLE, "51.2");
+    params.set(android::CameraParameters::KEY_VERTICAL_VIEW_ANGLE, "39.4");
+
+    /* Set HDR scene mode when image stabilizer is enabled */
+    const char* isMode = params.get(KEY_EX_IMAGE_STABILIZER);
+    if (isMode) {
+        if (strcmp(isMode, EX_ON) == 0) {
+            params.set(android::CameraParameters::KEY_SCENE_MODE, "hdr");
+        }
+    }
+
+    /* Metering mode */
+    const char* meteringMode = params.get(KEY_EX_METERING_MODE);
+    if (meteringMode) {
+        if (strcmp(meteringMode, "frame-average") == 0) {
+            params.set(android::CameraParameters::KEY_AUTO_EXPOSURE, android::CameraParameters::AUTO_EXPOSURE_FRAME_AVG);
+        } else if (strcmp(meteringMode, "center-weighted") == 0) {
+            params.set(android::CameraParameters::KEY_AUTO_EXPOSURE, android::CameraParameters::AUTO_EXPOSURE_CENTER_WEIGHTED);
+        } else if (strcmp(meteringMode, "spot") == 0) {
+            params.set(android::CameraParameters::KEY_AUTO_EXPOSURE, android::CameraParameters::AUTO_EXPOSURE_SPOT_METERING);
+        }
+    }
+
+    /* Max focus areas */
+    const char* multiFocusNum = params.get(KEY_EX_MAX_MULTI_FOCUS_NUM);
+    if (multiFocusNum) {
+        params.set(android::CameraParameters::KEY_MAX_NUM_FOCUS_AREAS, multiFocusNum);
+    }
 
     android::String8 strParams = params.flatten();
     char *ret = strdup(strParams.string());
@@ -124,25 +175,47 @@ char * camera_fixup_setparams(int id, const char * settings)
     android::CameraParameters params;
     params.unflatten(android::String8(settings));
 
-#if 0
-    if (params.get(android::CameraParameters::KEY_RECORDING_HINT)) {
-        const char* recordingHint = params.get(android::CameraParameters::KEY_RECORDING_HINT);
+    /* Video stabilization */
+    const char* recordingHint = params.get(android::CameraParameters::KEY_RECORDING_HINT);
+    if (recordingHint) {
         if (strcmp(recordingHint, android::CameraParameters::TRUE) == 0) {
-            /* Video stabiliser */
-            params.set(KEY_SEMC_VIDEO_STABILISER, VALUE_SEMC_ON);
-            params.set(KEY_SEMC_IMAGE_STABILISER, VALUE_SEMC_OFF);
+            params.set(KEY_EX_VIDEO_MODE, EX_ON);
+            params.set(KEY_EX_VIDEO_STABILIZER, EX_ON);
         } else if (strcmp(recordingHint, android::CameraParameters::FALSE) == 0) {
-            /* Image stabiliser */
-            params.set(KEY_SEMC_VIDEO_STABILISER, VALUE_SEMC_OFF);
-            params.set(KEY_SEMC_IMAGE_STABILISER, VALUE_SEMC_ON);
+            params.set(KEY_EX_VIDEO_MODE, EX_OFF);
+            params.set(KEY_EX_VIDEO_STABILIZER, EX_OFF);
         }
     }
-#endif
+
+    /* Enable image stabilizer when HDR scene mode is selected */
+    const char* sceneMode = params.get(android::CameraParameters::KEY_SCENE_MODE);
+    if (sceneMode) {
+        if (strcmp(sceneMode, "hdr") == 0) {
+            params.set(KEY_EX_IMAGE_STABILIZER, EX_ON);
+            params.set(android::CameraParameters::KEY_SCENE_MODE, android::CameraParameters::SCENE_MODE_AUTO);
+            params.set(KEY_EX_SUPPORTED_SCENE_DETECTIONS, android::CameraParameters::FALSE);
+        } else {
+            params.set(KEY_EX_IMAGE_STABILIZER, EX_OFF);
+            params.set(KEY_EX_SUPPORTED_SCENE_DETECTIONS, android::CameraParameters::TRUE);
+        }
+    }
+
+    /* Metering mode */
+    const char* meteringMode = params.get(android::CameraParameters::KEY_AUTO_EXPOSURE);
+    if (meteringMode) {
+        if (strcmp(meteringMode, android::CameraParameters::AUTO_EXPOSURE_FRAME_AVG) == 0) {
+            params.set(KEY_EX_METERING_MODE, "frame-average");
+        } else if (strcmp(meteringMode, android::CameraParameters::AUTO_EXPOSURE_CENTER_WEIGHTED) == 0) {
+            params.set(KEY_EX_METERING_MODE, "center-weighted");
+        } else if (strcmp(meteringMode, android::CameraParameters::AUTO_EXPOSURE_SPOT_METERING) == 0) {
+            params.set(KEY_EX_METERING_MODE, "spot");
+        }
+    }
 
 #ifdef USES_AS3676_TORCH
-    /* Fix urushi as3676 torch */
-    if (params.get(android::CameraParameters::KEY_FLASH_MODE)) {
-        const char* flashMode = params.get(android::CameraParameters::KEY_FLASH_MODE);
+    /* HACK - Fix urushi as3676 torch */
+    const char* flashMode = params.get(android::CameraParameters::KEY_FLASH_MODE);
+    if (flashMode) {
         if (strcmp(flashMode, android::CameraParameters::FLASH_MODE_TORCH) == 0) {
             system("echo 255 > /sys/class/leds/torch-rgb1/brightness");
             system("echo 255 > /sys/class/leds/torch-rgb2/brightness");
